@@ -6,7 +6,7 @@
 
 | 主题 | 笔记 | 内容 |
 | --- | --- | --- |
-| 机器学习 · LightGBM | [怎么用 bin 找最佳切分](machine-learning/lightgbm/bin-and-best-split.md) | 连续特征分箱、叶子得分、多特征切分与多棵树逐轮修正 |
+| 机器学习 · LightGBM | [怎么用 bin 找最佳切分](machine-learning/lightgbm/bin-and-best-split.md) | 连续特征分箱、叶子得分、多特征切分、多棵树逐轮修正与调参建议 |
 
 ## 整理方式
 
