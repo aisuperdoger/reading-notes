@@ -1,0 +1,136 @@
+# 研究规格示例；尚无随附可运行CLI。
+# null字段需要真实资料，不得编造。正式实验先通过时间与资金审计。
+spec_version: "2026-09-30"
+run:
+  name: portfolio_research
+  mode: research_only
+  workdir: null
+  artifacts_dir: null
+  seeds: [17, 29, 43]
+  allow_live_orders: false
+
+hardware:
+  gpu_memory_budget_gib: 32
+  device_model: null
+  precision: auto_verified
+  gradient_checkpointing: true
+  profile_sequence_lengths: [1, 4, 16]
+
+data:
+  market: cn_a_share
+  timezone: Asia/Shanghai
+  provider: null
+  raw_data_path: null
+  available_start: null
+  available_end: null
+  pit_versions_required: true
+  corporate_actions_required: true
+  delisted_instruments_required: true
+  execution_event_data_required: true
+  initial_capital: null
+  benchmark_id: null
+  market_index_ids: null
+  # 缺少PIT财务不能默默用今天的最终版本；只能阻塞或另建量价消融。
+  missing_pit_financial_policy: block_full_model
+
+timing:
+  signal_time: "18:00"
+  execution_decision_time: "09:35"
+  execution_window_start: "09:36"
+  execution_window_end: "09:40"
+  execution_day_offset: 1
+  rebalance_every_trading_days: 5
+  forbid_future_events_in_decisions: true
+
+features:
+  lookback_days: 60
+  price_volume_family: Alpha158
+  feature_implementation_commit: null
+  financial_dimensions: 12
+  market_dimensions: 12
+  preprocessing_fit_scope: current_training_fold
+  allow_backward_fill: false
+  retain_absolute_market_state: true
+  label_horizons_trading_days: [5, 20]
+  label_data_separate_from_features: true
+
+model:
+  family: temporal_cross_sectional_transformer
+  patch_days: 5
+  hidden_dim: 512
+  temporal_layers: 6
+  cross_sectional_layers: 4
+  attention_heads: 8
+  feedforward_dim: 2048
+  dropout: 0.1
+  cash_token: true
+  market_token: true
+  padding_allocation_zero: true
+  fincast:
+    enabled: false
+    checkpoint_path: null
+    checkpoint_sha256: null
+    pretraining_data_cutoff: null
+    cutoff_evidence: null
+    adaptation: lora
+    lora_rank: 16
+    unknown_cutoff_policy: exploratory_only
+
+allocation:
+  long_only: true
+  leverage_allowed: false
+  denominator: pretrade_equity
+  stock_cap: 0.05
+  industry_cap: 0.25
+  cash_min: 0.0
+  cash_max: 1.0
+  turnover_preference_kappa: 0.01
+  respect_existing_frozen_excess: true
+  solver_failure_policy: retain_holdings_freeze_new_trades_and_report
+  cost_schedule_path: null
+  execution_rules_path: null
+  participation_cap: null
+  risk_tolerance: null
+
+training:
+  optimizer: AdamW
+  pretrain_learning_rate: 0.0001
+  portfolio_learning_rate: 0.00003
+  lora_learning_rate: 0.00001
+  weight_decay: 0.0001
+  gradient_clip_norm: 1.0
+  warmup_fraction: 0.05
+  schedule: cosine
+  sequence_rebalance_periods: 16
+  max_epochs: 50
+  early_stopping_validation_checks: 8
+  objective: negative_mean_net_log_growth
+  optional_pretraining_loss: huber_5d_20d
+  preserve_holdings_between_chunks: true
+  truncate_gradient_at_chunk_boundary: true
+  fail_on_nonpositive_wealth_or_nonfinite_gradient: true
+
+evaluation:
+  train_years: 5
+  validation_years: 1
+  development_test_months: 6
+  final_holdout_years: 1
+  split_manifest_path: null
+  purge_by_label_available_at: true
+  selection_cutoff_before_test: true
+  purge_unrealized_validation_outcomes: true
+  pretrained_eligibility_checked_per_fold: true
+  final_holdout_once_after_freeze: true
+  cost_multipliers: [1.0, 2.0]
+  primary_metric: mean_net_log_growth
+  strict_event_replay: true
+  compare_training_and_strict_execution: true
+
+audit:
+  required_temporal_tests:
+    [T01, T02, T03, T04, T05, T06, T07, T08, T09, T10, T11, T12, T13, T14]
+  numeric_atol: 0.000001
+  numeric_rtol: 0.00001
+  unknown_availability_policy: incomplete
+  allow_unaudited_model_selection: false
+  synthetic_results_are_not_performance_evidence: true
